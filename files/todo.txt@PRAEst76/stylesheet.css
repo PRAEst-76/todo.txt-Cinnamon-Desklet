@@ -1,0 +1,109 @@
+.todotxt-container {
+    padding: 10px;
+    min-width: 300px;
+}
+
+.todotxt-title {
+    font-size: 18px;
+    font-weight: bold;
+    padding-bottom: 8px;
+}
+
+.todotxt-tasks {
+    spacing: 6px;
+}
+
+.todotxt-task {
+    padding: 3px 0px;
+}
+
+.todotxt-task-line {
+    spacing: 6px;
+}
+
+.todotxt-marker {
+    font-size: 11px;
+}
+
+.todotxt-marker-completed {
+    font-size: 11px;
+    opacity: 0.55;
+}
+
+.todotxt-task-text {
+    font-size: 12px;
+}
+
+.todotxt-task-completed {
+    font-size: 12px;
+    text-decoration: line-through;
+    opacity: 0.55;
+}
+
+/*
+ * Metadata
+ */
+
+.todotxt-metadata {
+    spacing: 5px;
+    padding-top: 2px;
+}
+
+.todotxt-date {
+    font-size: 10px;
+    opacity: 0.65;
+}
+
+.todotxt-due {
+    font-size: 10px;
+    text-decoration: underline;
+}
+
+.todotxt-due-overdue {
+    font-size: 10px;
+    font-weight: bold;
+    text-decoration: underline;
+}
+
+.todotxt-due-soon {
+    font-size: 10px;
+    font-weight: bold;
+    text-decoration: underline;
+}
+
+/*
+ * Tags
+ */
+
+.todotxt-tag {
+    font-size: 10px;
+    padding: 2px 7px;
+    border-radius: 10px;
+    background-color: rgba(128, 128, 128, 0.507);
+}
+
+.todotxt-project {
+    font-size: 10px;
+}
+
+.todotxt-context {
+    font-size: 10px;
+}
+
+.todotxt-other-tag {
+    font-size: 10px;
+}
+
+/*
+ * Error / empty state
+ */
+
+.todotxt-empty {
+    opacity: 0.6;
+    font-style: italic;
+}
+
+.todotxt-error {
+    font-size: 11px;
+    opacity: 0.8;
+}

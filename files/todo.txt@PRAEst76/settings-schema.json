@@ -1,4 +1,9 @@
 {
+    "display-header": {
+        "type": "header",
+        "description": "Display"
+    },
+
     "todo-file": {
         "type": "filechooser",
         "default": "~/todo.txt",
@@ -8,31 +13,112 @@
     },
 
     "show-completed": {
-        "type": "boolean",
+        "type": "switch",
         "default": false,
         "description": "Show completed tasks",
-        "tooltip": "Display tasks beginning with 'x'"
+        "tooltip": "Display completed tasks"
+    },
+
+    "show-task-count": {
+        "type": "switch",
+        "default": true,
+        "description": "Show task count",
+        "tooltip": "Show the number of displayed tasks"
     },
 
     "show-priority": {
-        "type": "boolean",
+        "type": "switch",
         "default": true,
-        "description": "Show task priorities",
-        "tooltip": "Display the (A), (B), (C) priority markers"
+        "description": "Show priorities",
+        "tooltip": "Display task priorities"
+    },
+
+    "show-creation-date": {
+        "type": "switch",
+        "default": false,
+        "description": "Show creation dates",
+        "tooltip": "Display creation dates"
+    },
+
+    "show-due-date": {
+        "type": "switch",
+        "default": false,
+        "description": "Show due dates",
+        "tooltip": "Display due dates"
     },
 
     "show-projects": {
-        "type": "boolean",
-        "default": true,
+        "type": "switch",
+        "default": false,
         "description": "Show projects",
-        "tooltip": "Display +Project tags"
+        "tooltip": "Display +project tags"
     },
 
     "show-contexts": {
-        "type": "boolean",
-        "default": true,
+        "type": "switch",
+        "default": false,
         "description": "Show contexts",
         "tooltip": "Display @context tags"
+    },
+
+    "show-other-tags": {
+        "type": "switch",
+        "default": false,
+        "description": "Show other tags",
+        "tooltip": "Display other key:value tags"
+    },
+
+    "appearance-header": {
+        "type": "header",
+        "description": "Appearance"
+    },
+
+    "show-tags-below": {
+        "type": "switch",
+        "default": true,
+        "description": "Show tags below task",
+        "tooltip": "Display projects and contexts on a separate line"
+    },
+
+    "align-tags-right": {
+        "type": "switch",
+        "default": true,
+        "description": "Align tags to the right",
+        "tooltip": "Align projects and contexts to the right of the task"
+    },
+
+    "rounded-tags": {
+        "type": "switch",
+        "default": true,
+        "description": "Rounded tag backgrounds",
+        "tooltip": "Display projects and contexts as rounded labels"
+    },
+
+    "underline-due": {
+        "type": "switch",
+        "default": true,
+        "description": "Underline due dates",
+        "tooltip": "Underline displayed due dates"
+    },
+
+    "font-size": {
+        "type": "spinbutton",
+        "default": 12,
+        "min": 7,
+        "max": 32,
+        "step": 1,
+        "units": "px",
+        "description": "Font size"
+    },
+
+    "task-spacing": {
+        "type": "spinbutton",
+        "default": 6,
+        "min": 0,
+        "max": 30,
+        "step": 1,
+        "units": "px",
+        "description": "Task spacing"
     },
 
     "refresh-interval": {
@@ -42,17 +128,6 @@
         "max": 3600,
         "step": 1,
         "units": "seconds",
-        "description": "Refresh interval",
-        "tooltip": "How often the todo.txt file is checked"
-    },
-
-    "font-size": {
-        "type": "spinbutton",
-        "default": 12,
-        "min": 6,
-        "max": 32,
-        "step": 1,
-        "units": "px",
-        "description": "Font size"
+        "description": "Refresh interval"
     }
 }
