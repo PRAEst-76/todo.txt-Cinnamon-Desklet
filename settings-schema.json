@@ -1,0 +1,58 @@
+{
+    "todo-file": {
+        "type": "filechooser",
+        "default": "~/todo.txt",
+        "select-dir": false,
+        "description": "Todo.txt file",
+        "tooltip": "Select the todo.txt file to display"
+    },
+
+    "show-completed": {
+        "type": "boolean",
+        "default": false,
+        "description": "Show completed tasks",
+        "tooltip": "Display tasks beginning with 'x'"
+    },
+
+    "show-priority": {
+        "type": "boolean",
+        "default": true,
+        "description": "Show task priorities",
+        "tooltip": "Display the (A), (B), (C) priority markers"
+    },
+
+    "show-projects": {
+        "type": "boolean",
+        "default": true,
+        "description": "Show projects",
+        "tooltip": "Display +Project tags"
+    },
+
+    "show-contexts": {
+        "type": "boolean",
+        "default": true,
+        "description": "Show contexts",
+        "tooltip": "Display @context tags"
+    },
+
+    "refresh-interval": {
+        "type": "spinbutton",
+        "default": 10,
+        "min": 1,
+        "max": 3600,
+        "step": 1,
+        "units": "seconds",
+        "description": "Refresh interval",
+        "tooltip": "How often the todo.txt file is checked"
+    },
+
+    "font-size": {
+        "type": "spinbutton",
+        "default": 12,
+        "min": 6,
+        "max": 32,
+        "step": 1,
+        "units": "px",
+        "description": "Font size"
+    }
+}
