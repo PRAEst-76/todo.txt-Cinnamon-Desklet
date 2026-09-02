@@ -1,8 +1,0 @@
-{
-    "uuid": "todo.txt@PRAEst76",
-    "name": "Todo.txt",
-    "description": "A basic Desklet that displays the contents of a standard todo.txt file",
-    "version": "1.0",
-    "author": "PRAEst76",
-    "max-instances": 10
-}
