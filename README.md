@@ -1,17 +1,46 @@
-## Todo.txt Desklet for Cinnamon
+# Todo.txt Desklet for Cinnamon
 
-<img width="464" height="212" alt="todo txt" src="v2.0.png" />
+![Screenshot of v2.0](v2.0.png)
 
-You can select the todo.txt file via the settings.
+## Description
 
-At the moment the only other options are refresh time and font size.
+A Cinnamon desklet that displays your todo list from a standard todo.txt file. This is a simple system/platform agnostic text file containing a line for each task including optional creation date, due date and project and context tags.
+
+This format is supported by multiple clients on multiple platforms.
+
+See [http://todotxt.org](http://todotxt.org) for more information.
+
+## Install & Setup
+
+To install extract the release archive to ~/.local/share/cinnamon/desklets/
+
+eg.
+
+```
+~/.local/share/cinnamon/desklets/todo.txt@PRAEst76/desklet.js
+~/.local/share/cinnamon/desklets/todo.txt@PRAEst76/icon.png
+~/.local/share/cinnamon/desklets/todo.txt@PRAEst76/metadata.json
+~/.local/share/cinnamon/desklets/todo.txt@PRAEst76/settings-schema.json
+~/.local/share/cinnamon/desklets/todo.txt@PRAEst76/stylesheet.css
+```
+
+You should then be able to activate it from the Cinnamon Settings Desklets manager ('Desklets' in the Cinnamon menu or `cinnamon-settings desklets` on the terminal).
+
+![Activation via the Cinnamon Settings Desklets manager](activation.png)
+
+You can select the todo.txt file and customise the display either by clicking the settings icon in Desklets or via the right-click menu on the desklet itself.
+
+![The settings screen](settings.png)
 
 Left-clicking on the desklet should load the todo.txt file in your default text editor.
 
+> [!CAUTION]
+> I've only tested this with Cinnamon 6.6.9 (the version I'm running, but it *should* work with all 6.x releases and *may* work with later 5.x releases. Please report any issues.)
+
 ## Todo.txt Todo
 
-- [ ] Add some style options
-- [ ] Add ability to chose what information is displayed
+- [x] Add some style options
+- [x] Add ability to chose what information is displayed
 - [ ] Add ability to make tasks as done from the desklet.
 - [ ] Fix it so it works on multiple version of cinnamon other than the one I use.
 - [ ] Other stuff that comes to mind over time
