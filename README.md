@@ -1,5 +1,7 @@
 ## Todo.txt Desklet for Cinnamon
 
+<img width="464" height="212" alt="todo txt" src="https://github.com/user-attachments/assets/832a930a-3c1f-4819-a01d-4cf80abfc81f" />
+
 You can select the todo.txt file via the settings.
 
 At the moment the only other options are refresh time and font size.
