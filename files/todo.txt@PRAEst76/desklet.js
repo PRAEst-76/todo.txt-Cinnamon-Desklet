@@ -14,7 +14,7 @@ function TodoTxtDesklet(metadata, desklet_id) {
 TodoTxtDesklet.prototype = {
     __proto__: Desklet.Desklet.prototype,
 
-    _init: function(metadata, desklet_id) {
+    _init: function (metadata, desklet_id) {
         Desklet.Desklet.prototype._init.call(this, metadata, desklet_id);
 
         this.metadata = metadata;
@@ -82,7 +82,7 @@ TodoTxtDesklet.prototype = {
         );
     },
 
-    _buildUI: function() {
+    _buildUI: function () {
         this._mainBox = new St.BoxLayout({
             vertical: true,
             style_class: "todotxt-container"
@@ -105,12 +105,12 @@ TodoTxtDesklet.prototype = {
         this.setContent(this._mainBox);
     },
 
-    _settingsChanged: function() {
+    _settingsChanged: function () {
         this._applyFontSize();
         this._update();
     },
 
-    _applyFontSize: function() {
+    _applyFontSize: function () {
         if (!this._taskBox)
             return;
 
@@ -119,44 +119,44 @@ TodoTxtDesklet.prototype = {
         );
     },
 
-    _expandPath: function(path) {
-    if (!path)
-        return null;
-
-    path = String(path).trim();
-
-    if (path.length === 0)
-        return null;
-
-    // Cinnamon's filechooser can return a file:// URI.
-    if (path.startsWith("file://")) {
-        try {
-            let file = Gio.file_new_for_uri(path);
-            return file.get_path();
-        }
-        catch (e) {
-            global.logError(
-                "Unable to convert file URI: " + path
-            );
+    _expandPath: function (path) {
+        if (!path)
             return null;
+
+        path = String(path).trim();
+
+        if (path.length === 0)
+            return null;
+
+        // Cinnamon's filechooser can return a file:// URI.
+        if (path.startsWith("file://")) {
+            try {
+                let file = Gio.file_new_for_uri(path);
+                return file.get_path();
+            }
+            catch (e) {
+                global.logError(
+                    "Unable to convert file URI: " + path
+                );
+                return null;
+            }
         }
-    }
 
-    // Expand ~/ if necessary.
-    if (path === "~")
-        return GLib.get_home_dir();
+        // Expand ~/ if necessary.
+        if (path === "~")
+            return GLib.get_home_dir();
 
-    if (path.startsWith("~/")) {
-        return GLib.build_filenamev([
-            GLib.get_home_dir(),
-            path.substring(2)
-        ]);
-    }
+        if (path.startsWith("~/")) {
+            return GLib.build_filenamev([
+                GLib.get_home_dir(),
+                path.substring(2)
+            ]);
+        }
 
-    return path;
+        return path;
     },
 
-    _update: function() {
+    _update: function () {
         if (this._refreshTimer) {
             Mainloop.source_remove(this._refreshTimer);
             this._refreshTimer = null;
@@ -178,7 +178,7 @@ TodoTxtDesklet.prototype = {
         );
     },
 
-    _readTodoFile: function() {
+    _readTodoFile: function () {
         let path = this._expandPath(this.todoFile);
 
         if (!path) {
@@ -221,7 +221,7 @@ TodoTxtDesklet.prototype = {
         }
     },
 
-    _displayTasks: function(text) {
+    _displayTasks: function (text) {
         this._taskBox.destroy_all_children();
 
         let lines = text.split(/\r?\n/);
@@ -267,7 +267,7 @@ TodoTxtDesklet.prototype = {
         this._applyFontSize();
     },
 
-    _parseTask: function(line, completed) {
+    _parseTask: function (line, completed) {
         let task = {
             text: line,
             completed: completed,
@@ -333,7 +333,7 @@ TodoTxtDesklet.prototype = {
         return task;
     },
 
-    _addTask: function(task) {
+    _addTask: function (task) {
         let row = new St.BoxLayout({
             vertical: false,
             style_class: "todotxt-task"
@@ -383,7 +383,7 @@ TodoTxtDesklet.prototype = {
         this._taskBox.add_child(row);
     },
 
-    _showError: function(message) {
+    _showError: function (message) {
         this._taskBox.destroy_all_children();
 
         let errorLabel = new St.Label({
@@ -398,7 +398,7 @@ TodoTxtDesklet.prototype = {
         this._title.set_text("Todo.txt");
     },
 
-    _onClicked: function(actor, event) {
+    _onClicked: function (actor, event) {
         let button = event.get_button();
 
         if (button !== Clutter.BUTTON_PRIMARY)
@@ -424,7 +424,7 @@ TodoTxtDesklet.prototype = {
         return Clutter.EVENT_STOP;
     },
 
-    on_desklet_removed: function() {
+    on_desklet_removed: function () {
         if (this._refreshTimer) {
             Mainloop.source_remove(this._refreshTimer);
             this._refreshTimer = null;
