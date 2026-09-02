@@ -1,6 +1,6 @@
 ## Todo.txt Desklet for Cinnamon
 
-<img width="464" height="212" alt="todo txt" src="https://github.com/user-attachments/assets/832a930a-3c1f-4819-a01d-4cf80abfc81f" />
+<img width="464" height="212" alt="todo txt" src="v2.0.png" />
 
 You can select the todo.txt file via the settings.
 
