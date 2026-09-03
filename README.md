@@ -2,6 +2,9 @@
 
 ![Screenshot](screenshot.png)
 
+> [!NOTE]
+> AI was used in the production of this code for the purposes of bug-hunting, streamlining and general focus assist. I have ADHD and otherwise this would be lying with all my other half-finished projects while I chase squirrels in the yard.
+
 ## Description
 
 A Cinnamon desklet that displays your todo list from a standard todo.txt file. This is a simple system/platform agnostic text file containing a line for each task including optional creation date, due date and project and context tags.
