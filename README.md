@@ -28,6 +28,8 @@ You should then be able to activate it from the Cinnamon Settings Desklets manag
 
 ![Activation via the Cinnamon Settings Desklets manager](activation.png)
 
+The Desklet comes with an example todo.txt that is set as default. I reccomend you create your own using your preferred text editor or edit the example and save it to your home directory.
+
 You can select the todo.txt file and customise the display either by clicking the settings icon in Desklets or via the right-click menu on the desklet itself.
 
 ![The settings screen](settings.png)
@@ -42,5 +44,7 @@ Left-clicking on the desklet should load the todo.txt file in your default text 
 - [x] Add some style options
 - [x] Add ability to choose what information is displayed
 - [ ] Add ability to mark tasks as done from the desklet.
+- [ ] Add the ability to open links from tasks in default browser
 - [ ] Fix it so it works on multiple version of cinnamon other than the one I use.
 - [ ] Other stuff that comes to mind over time
+- [ ] Keep it light

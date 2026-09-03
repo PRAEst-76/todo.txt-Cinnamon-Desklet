@@ -6,7 +6,7 @@
 
     "todo-file": {
         "type": "filechooser",
-        "default": "~/todo.txt",
+        "default": "~/.local/share/cinnamon/desklets/todo.txt@PRAEst76/example-todo.txt",
         "select-dir": false,
         "description": "Todo.txt file",
         "tooltip": "Select the todo.txt file to display"
@@ -14,7 +14,7 @@
 
     "show-completed": {
         "type": "switch",
-        "default": false,
+        "default": true,
         "description": "Show completed tasks",
         "tooltip": "Display completed tasks"
     },
@@ -42,28 +42,28 @@
 
     "show-due-date": {
         "type": "switch",
-        "default": false,
+        "default": true,
         "description": "Show due dates",
         "tooltip": "Display due dates"
     },
 
     "show-projects": {
         "type": "switch",
-        "default": false,
+        "default": true,
         "description": "Show projects",
         "tooltip": "Display +project tags"
     },
 
     "show-contexts": {
         "type": "switch",
-        "default": false,
+        "default": true,
         "description": "Show contexts",
         "tooltip": "Display @context tags"
     },
 
     "show-other-tags": {
         "type": "switch",
-        "default": false,
+        "default": true,
         "description": "Show other tags",
         "tooltip": "Display other key:value tags"
     },
