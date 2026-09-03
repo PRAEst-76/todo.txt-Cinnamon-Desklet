@@ -1,4 +1,7 @@
-x (B) 2026-09-03 2026-09-01 Put the lime in the coconut +Health @kitchen
-x (B) 2026-09-03 2026-09-02 Drink it all up +Health @veranda
-(A) 2026-09-03 Call the doctor +Health @bathroom due:2026-09-04
-
+x Install todo.txt Desklet +begin @cinnamon
+Right-click to open the desklet settings +todo @desklet
+Customise the style to suit your desktop +todo @desklet
+Learn about todo.txt at http://todotxt.org +todo @web
+Create your own todo.txt file +personalise @home
+Set it as default +personalise @home
+Be more productive +motivation +life
