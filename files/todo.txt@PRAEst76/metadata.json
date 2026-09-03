@@ -2,7 +2,14 @@
     "uuid": "todo.txt@PRAEst76",
     "name": "Todo.txt",
     "description": "A basic desklet that displays the contents of a standard todo.txt file",
+    "website": "https://github.com/PRAEst-76/todo.txt-Cinnamon-Desklet",
     "version": "2.0.0",
     "author": "PRAEst76",
-    "max-instances": 10
+    "max-instances": 10,
+    "cinnamon-version": [
+        "6.0",
+        "6.2",
+        "6.4",
+        "6.6"
+    ]
 }

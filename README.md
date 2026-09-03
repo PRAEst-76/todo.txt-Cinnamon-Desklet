@@ -1,6 +1,6 @@
 # Todo.txt Desklet for Cinnamon
 
-![Screenshot of v2.0](v2.0.png)
+![Screenshot](screenshot.png)
 
 ## Description
 
@@ -40,7 +40,7 @@ Left-clicking on the desklet should load the todo.txt file in your default text 
 ## Todo.txt Todo
 
 - [x] Add some style options
-- [x] Add ability to chose what information is displayed
-- [ ] Add ability to make tasks as done from the desklet.
+- [x] Add ability to choose what information is displayed
+- [ ] Add ability to mark tasks as done from the desklet.
 - [ ] Fix it so it works on multiple version of cinnamon other than the one I use.
 - [ ] Other stuff that comes to mind over time
