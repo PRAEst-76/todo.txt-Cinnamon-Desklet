@@ -19,8 +19,13 @@ TodoTxtDesklet.prototype = {
     __proto__: Desklet.Desklet.prototype,
 
 
-    _init: function(metadata, desklet_id) {
+    /*
+     * ------------------------------------------------------------------------
+     * Initialisation
+     * ------------------------------------------------------------------------
+     */
 
+    _init: function(metadata, desklet_id) {
         Desklet.Desklet.prototype._init.call(
             this,
             metadata,
@@ -36,7 +41,25 @@ TodoTxtDesklet.prototype = {
             desklet_id
         );
 
+        this._refreshTimer = null;
+        this._currentRefreshInterval = null;
 
+        this._bindSettings();
+        this._buildUI();
+
+        this.setHeader("Todo.txt");
+
+        this.actor.connect(
+            "button-release-event",
+            this._onClicked.bind(this)
+        );
+
+        this._readTodoFile();
+        this._startRefreshTimer();
+    },
+
+
+    _bindSettings: function() {
         let settings = [
             "todo-file",
             "show-completed",
@@ -56,34 +79,17 @@ TodoTxtDesklet.prototype = {
             "refresh-interval"
         ];
 
-
         for (let i = 0; i < settings.length; i++) {
-
             this.settings.bind(
                 settings[i],
                 this._settingName(settings[i]),
                 this._settingsChanged.bind(this)
             );
         }
-
-
-        this._refreshTimer = null;
-
-        this._buildUI();
-
-        this.setHeader("Todo.txt");
-
-        this.actor.connect(
-            "button-release-event",
-            this._onClicked.bind(this)
-        );
-
-        this._update();
     },
 
 
     _settingName: function(name) {
-
         return name.replace(
             /-([a-z])/g,
             function(match, letter) {
@@ -93,183 +99,157 @@ TodoTxtDesklet.prototype = {
     },
 
 
-    _buildUI: function() {
+    /*
+     * ------------------------------------------------------------------------
+     * User interface
+     * ------------------------------------------------------------------------
+     */
 
+    _buildUI: function() {
         this._mainBox = new St.BoxLayout({
             vertical: true,
             style_class: "todotxt-container"
         });
-
 
         this._title = new St.Label({
             text: "Todo.txt",
             style_class: "todotxt-title"
         });
 
-
-        this._mainBox.add_child(
-            this._title
-        );
-
+        this._mainBox.add_child(this._title);
 
         this._taskBox = new St.BoxLayout({
             vertical: true,
             style_class: "todotxt-tasks"
         });
 
+        this._mainBox.add_child(this._taskBox);
 
-        this._mainBox.add_child(
-            this._taskBox
-        );
-
-
-        this.setContent(
-            this._mainBox
-        );
-
+        this.setContent(this._mainBox);
 
         this._applyAppearance();
     },
 
 
     _settingsChanged: function() {
+        let newInterval = this._getRefreshInterval();
 
         this._applyAppearance();
+        this._readTodoFile();
 
-        this._update();
+        if (newInterval !== this._currentRefreshInterval) {
+            this._startRefreshTimer();
+        }
     },
 
 
     _applyAppearance: function() {
-
         if (!this._taskBox)
             return;
 
-
-        let fontSize =
-            parseInt(this.fontSize);
-
+        let fontSize = parseInt(this.fontSize, 10);
         if (isNaN(fontSize))
             fontSize = 12;
 
-
-        let spacing =
-            parseInt(this.taskSpacing);
-
+        let spacing = parseInt(this.taskSpacing, 10);
         if (isNaN(spacing))
             spacing = 6;
 
-
         this._taskBox.set_style(
-            "font-size: " +
-            fontSize +
-            "px; spacing: " +
-            spacing +
-            "px;"
+            "font-size: " + fontSize + "px; " +
+            "spacing: " + spacing + "px;"
         );
     },
 
 
-    _expandPath: function(path) {
+    /*
+     * ------------------------------------------------------------------------
+     * Refresh handling
+     * ------------------------------------------------------------------------
+     */
 
+    _getRefreshInterval: function() {
+        let interval = parseInt(this.refreshInterval, 10);
+
+        if (isNaN(interval) || interval < 1)
+            interval = 10;
+
+        return interval;
+    },
+
+
+    _startRefreshTimer: function() {
+        this._stopRefreshTimer();
+
+        this._currentRefreshInterval =
+            this._getRefreshInterval();
+
+        this._refreshTimer = Mainloop.timeout_add_seconds(
+            this._currentRefreshInterval,
+            () => {
+                this._readTodoFile();
+                return true;
+            }
+        );
+    },
+
+
+    _stopRefreshTimer: function() {
+        if (this._refreshTimer) {
+            Mainloop.source_remove(this._refreshTimer);
+            this._refreshTimer = null;
+        }
+
+        this._currentRefreshInterval = null;
+    },
+
+
+    /*
+     * ------------------------------------------------------------------------
+     * File handling
+     * ------------------------------------------------------------------------
+     */
+
+    _expandPath: function(path) {
         if (!path)
             return null;
 
-
         path = String(path).trim();
-
 
         if (path.length === 0)
             return null;
 
-
         if (path.startsWith("file://")) {
-
             try {
-
-                let file =
-                    Gio.file_new_for_uri(path);
-
+                let file = Gio.file_new_for_uri(path);
                 return file.get_path();
-
             } catch (e) {
-
                 global.logError(
-                    "Unable to convert file URI: " +
-                    path
+                    "Unable to convert file URI: " + path
                 );
 
                 return null;
             }
         }
 
-
         if (path === "~")
             return GLib.get_home_dir();
 
-
         if (path.startsWith("~/")) {
-
             return GLib.build_filenamev([
                 GLib.get_home_dir(),
                 path.substring(2)
             ]);
         }
 
-
         return path;
     },
 
 
-    _update: function() {
-
-        if (this._refreshTimer) {
-
-            Mainloop.source_remove(
-                this._refreshTimer
-            );
-
-            this._refreshTimer = null;
-        }
-
-
-        this._readTodoFile();
-
-
-        let interval =
-            parseInt(this.refreshInterval);
-
-
-        if (
-            isNaN(interval) ||
-            interval < 1
-        )
-            interval = 10;
-
-
-        this._refreshTimer =
-            Mainloop.timeout_add_seconds(
-                interval,
-                () => {
-
-                    this._readTodoFile();
-
-                    return true;
-                }
-            );
-    },
-
-
     _readTodoFile: function() {
-
-        let path =
-            this._expandPath(
-                this.todoFile
-            );
-
+        let path = this._expandPath(this.todoFile);
 
         if (!path) {
-
             this._showError(
                 "No todo.txt file selected."
             );
@@ -277,30 +257,20 @@ TodoTxtDesklet.prototype = {
             return;
         }
 
-
-        let file =
-            Gio.file_new_for_path(path);
-
+        let file = Gio.file_new_for_path(path);
 
         try {
-
             if (!file.query_exists(null)) {
-
                 this._showError(
-                    "File not found:\n" +
-                    path
+                    "File not found:\n" + path
                 );
 
                 return;
             }
 
-
-            let result =
-                GLib.file_get_contents(path);
-
+            let result = GLib.file_get_contents(path);
 
             if (!result[0]) {
-
                 this._showError(
                     "Unable to read todo.txt"
                 );
@@ -308,321 +278,455 @@ TodoTxtDesklet.prototype = {
                 return;
             }
 
-
-            let text =
-                ByteArray.toString(
-                    result[1]
-                );
-
+            let text = ByteArray.toString(result[1]);
 
             this._displayTasks(text);
 
         } catch (e) {
-
             this._showError(
-                "Error reading todo.txt:\n" +
-                e
+                "Error reading todo.txt:\n" + e
             );
         }
     },
 
 
-    _displayTasks: function(text) {
+    /*
+     * ------------------------------------------------------------------------
+     * Displaying tasks
+     * ------------------------------------------------------------------------
+     */
 
+    _displayTasks: function(text) {
         this._taskBox.destroy_all_children();
 
-
-        let lines =
-            text.split(/\r?\n/);
-
-
+        let lines = text.split(/\r?\n/);
         let taskCount = 0;
 
+        for (let i = 0; i < lines.length; i++) {
+            let line = lines[i].trim();
 
-        for (
-            let i = 0;
-            i < lines.length;
-            i++
-        ) {
-
-            let line =
-                lines[i].trim();
-
-
-            if (line.length === 0)
+            if (!line)
                 continue;
 
-
+            /*
+             * todo.txt comments
+             */
             if (line.startsWith("#"))
                 continue;
 
+            let task = this._parseTask(line);
 
-            let task =
-                this._parseTask(line);
-
-
-            if (
-                task.completed &&
-                !this.showCompleted
-            )
+            if (task.completed && !this.showCompleted)
                 continue;
 
-
             this._addTask(task);
-
             taskCount++;
         }
 
-
         if (taskCount === 0) {
-
-            let emptyLabel =
+            this._taskBox.add_child(
                 new St.Label({
                     text: "No tasks",
-                    style_class:
-                        "todotxt-empty"
-                });
-
-            this._taskBox.add_child(
-                emptyLabel
+                    style_class: "todotxt-empty"
+                })
             );
         }
 
-
-        if (this.showTaskCount) {
-
-            this._title.set_text(
-                "Todo.txt (" +
-                taskCount +
-                ")"
-            );
-
-        } else {
-
-            this._title.set_text(
-                "Todo.txt"
-            );
-        }
-
+        this._title.set_text(
+            this.showTaskCount
+                ? "Todo.txt (" + taskCount + ")"
+                : "Todo.txt"
+        );
 
         this._applyAppearance();
     },
 
 
+    _addTask: function(task) {
+        let row = new St.BoxLayout({
+            vertical: true,
+            style_class: "todotxt-task"
+        });
+
+        row.add_child(this._createTaskLine(task));
+
+        if (this.showTagsBelow) {
+            let metadata = this._createMetadata(task);
+
+            if (metadata)
+                row.add_child(metadata);
+        }
+
+        this._taskBox.add_child(row);
+    },
+
+
+    _createTaskLine: function(task) {
+        let taskLine = new St.BoxLayout({
+            vertical: false,
+            style_class: "todotxt-task-line"
+        });
+
+        let marker = task.completed ? "✓" : "○";
+
+        let markerLabel = new St.Label({
+            text: marker,
+            style_class: task.completed
+                ? "todotxt-marker-completed"
+                : "todotxt-marker"
+        });
+
+        markerLabel.set_width(24);
+
+        taskLine.add_child(markerLabel);
+
+        if (this.showPriority && task.priority) {
+            taskLine.add_child(
+                new St.Label({
+                    text: "(" + task.priority + ")",
+                    style_class: "todotxt-marker"
+                })
+            );
+        }
+
+        let textLabel = new St.Label({
+            text: task.text,
+            style_class: task.completed
+                ? "todotxt-task-completed"
+                : "todotxt-task-text"
+        });
+
+        textLabel.clutter_text.line_wrap = true;
+
+        taskLine.add_child(
+            textLabel,
+            { expand: true }
+        );
+
+        return taskLine;
+    },
+
+
+    _createMetadata: function(task) {
+        let hasDate =
+            (
+                this.showCreationDate &&
+                task.creationDate
+            ) ||
+            (
+                this.showDueDate &&
+                task.dueDate
+            );
+
+        let hasTags =
+            (
+                this.showProjects &&
+                task.projects.length > 0
+            ) ||
+            (
+                this.showContexts &&
+                task.contexts.length > 0
+            ) ||
+            (
+                this.showOtherTags &&
+                task.otherTags.length > 0
+            );
+
+        if (!hasDate && !hasTags)
+            return null;
+
+        let metadata = new St.BoxLayout({
+            vertical: false,
+            style_class: "todotxt-metadata"
+        });
+
+        if (this.alignTagsRight) {
+            metadata.add_child(
+                new St.Widget({
+                    x_expand: true
+                })
+            );
+        }
+
+        this._addDateMetadata(metadata, task);
+        this._addTagMetadata(metadata, task);
+
+        return metadata;
+    },
+
+
+    _addDateMetadata: function(metadata, task) {
+        if (
+            this.showCreationDate &&
+            task.creationDate
+        ) {
+            metadata.add_child(
+                new St.Label({
+                    text:
+                        "Created " +
+                        this._formatDate(task.creationDate),
+                    style_class: "todotxt-date"
+                })
+            );
+        }
+
+        if (
+            this.showDueDate &&
+            task.dueDate
+        ) {
+            let days = this._daysBetween(
+                this._getToday(),
+                task.dueDate
+            );
+
+            let style = "todotxt-due";
+
+            if (days !== null) {
+                if (days < 0) {
+                    style = "todotxt-due-overdue";
+                } else if (days <= 2) {
+                    style = "todotxt-due-soon";
+                }
+            }
+
+            let dueLabel = new St.Label({
+                text:
+                    "Due " +
+                    this._formatDate(task.dueDate),
+                style_class: style
+            });
+
+            if (!this.underlineDue) {
+                dueLabel.set_style(
+                    "text-decoration: none;"
+                );
+            }
+
+            metadata.add_child(dueLabel);
+        }
+    },
+
+
+    _addTagMetadata: function(metadata, task) {
+        if (
+            this.showProjects &&
+            task.projects.length > 0
+        ) {
+            this._addTags(
+                metadata,
+                task.projects,
+                "todotxt-project"
+            );
+        }
+
+        if (
+            this.showContexts &&
+            task.contexts.length > 0
+        ) {
+            this._addTags(
+                metadata,
+                task.contexts,
+                "todotxt-context"
+            );
+        }
+
+        if (
+            this.showOtherTags &&
+            task.otherTags.length > 0
+        ) {
+            this._addTags(
+                metadata,
+                task.otherTags,
+                "todotxt-other-tag"
+            );
+        }
+    },
+
+
+    _addTags: function(container, tags, styleClass) {
+        for (let i = 0; i < tags.length; i++) {
+            container.add_child(
+                this._createTag(
+                    tags[i],
+                    styleClass
+                )
+            );
+        }
+    },
+
+
+    _createTag: function(text, styleClass) {
+        let label = new St.Label({
+            text: text,
+            style_class:
+                "todotxt-tag " + styleClass
+        });
+
+        if (!this.roundedTags) {
+            label.set_style(
+                "border-radius: 0px;"
+            );
+        }
+
+        return label;
+    },
+
+
+    /*
+     * ------------------------------------------------------------------------
+     * todo.txt parsing
+     * ------------------------------------------------------------------------
+     */
+
     _parseTask: function(line) {
-
         let task = {
-
             completed: false,
-
             completionDate: null,
-
             creationDate: null,
-
             priority: null,
-
             dueDate: null,
-
             projects: [],
-
             contexts: [],
-
             otherTags: [],
-
             text: ""
         };
 
-
         /*
          * Completed task
+         *
+         * A completed task begins with:
+         *
+         * x YYYY-MM-DD ...
          */
-
         if (/^x\s+/i.test(line)) {
-
             task.completed = true;
 
-            line =
-                line.replace(
-                    /^x\s+/i,
-                    ""
-                );
+            line = line.replace(/^x\s+/i, "");
 
-
-            let completion =
-                line.match(
-                    /^(\d{4}-\d{2}-\d{2})\s+/
-                );
-
+            let completion = line.match(
+                /^(\d{4}-\d{2}-\d{2})\s+/
+            );
 
             if (completion) {
+                task.completionDate = completion[1];
 
-                task.completionDate =
-                    completion[1];
-
-                line =
-                    line.substring(
-                        completion[0].length
-                    );
+                line = line.substring(
+                    completion[0].length
+                );
             }
         }
-
 
         /*
          * Creation date
          */
-
-        let creation =
-            line.match(
-                /^(\d{4}-\d{2}-\d{2})\s+/
-            );
-
+        let creation = line.match(
+            /^(\d{4}-\d{2}-\d{2})\s+/
+        );
 
         if (creation) {
+            task.creationDate = creation[1];
 
-            task.creationDate =
-                creation[1];
-
-            line =
-                line.substring(
-                    creation[0].length
-                );
+            line = line.substring(
+                creation[0].length
+            );
         }
-
 
         /*
          * Priority
          */
-
-        let priority =
-            line.match(
-                /^\(([A-Z])\)\s+/
-            );
-
+        let priority = line.match(
+            /^\(([A-Z])\)\s+/
+        );
 
         if (priority) {
+            task.priority = priority[1];
 
-            task.priority =
-                priority[1];
-
-            line =
-                line.substring(
-                    priority[0].length
-                );
+            line = line.substring(
+                priority[0].length
+            );
         }
-
 
         /*
          * Remaining tokens
          */
-
-        let tokens =
-            line.split(/\s+/);
-
-
+        let tokens = line.split(/\s+/);
         let textTokens = [];
 
-
-        for (
-            let i = 0;
-            i < tokens.length;
-            i++
-        ) {
-
+        for (let i = 0; i < tokens.length; i++) {
             let token = tokens[i];
 
+            /*
+             * URLs must be checked before generic
+             * key:value tags.
+             *
+             * Otherwise:
+             *
+             *     http://todotxt.org
+             *
+             * would be mistaken for an "http:" tag.
+             */
+            if (/^https?:\/\/\S+$/i.test(token)) {
+                textTokens.push(token);
+                continue;
+            }
 
             /*
              * Due date
              */
-
-            if (
-                /^due:\d{4}-\d{2}-\d{2}$/i.test(
-                    token
-                )
-            ) {
-
-                task.dueDate =
-                    token.substring(4);
-
+            if (/^due:\d{4}-\d{2}-\d{2}$/i.test(token)) {
+                task.dueDate = token.substring(4);
                 continue;
             }
-
 
             /*
              * Project
              */
-
-            if (
-                /^\+[^\s]+$/.test(token)
-            ) {
-
-                task.projects.push(
-                    token
-                );
-
+            if (/^\+[^\s]+$/.test(token)) {
+                task.projects.push(token);
                 continue;
             }
-
 
             /*
              * Context
              */
-
-            if (
-                /^@[^\s]+$/.test(token)
-            ) {
-
-                task.contexts.push(
-                    token
-                );
-
+            if (/^@[^\s]+$/.test(token)) {
+                task.contexts.push(token);
                 continue;
             }
-
 
             /*
              * Other key:value tags
              */
-
             if (
-                /^[A-Za-z][A-Za-z0-9_-]*:[^\s]+$/.test(
-                    token
-                )
+                /^[A-Za-z][A-Za-z0-9_-]*:[^\s]+$/.test(token)
             ) {
-
-                task.otherTags.push(
-                    token
-                );
-
+                task.otherTags.push(token);
                 continue;
             }
-
 
             textTokens.push(token);
         }
 
-
-        task.text =
-            textTokens.join(" ");
-
+        task.text = textTokens.join(" ");
 
         return task;
     },
 
 
-    _formatDate: function(date) {
+    /*
+     * ------------------------------------------------------------------------
+     * Date helpers
+     * ------------------------------------------------------------------------
+     */
 
+    _formatDate: function(date) {
         if (!date)
             return "";
 
-
-        let parts =
-            date.split("-");
-
+        let parts = date.split("-");
 
         if (parts.length !== 3)
             return date;
-
 
         return (
             parseInt(parts[2], 10) +
@@ -637,7 +741,6 @@ TodoTxtDesklet.prototype = {
 
 
     _monthName: function(month) {
-
         let months = [
             "",
             "Jan",
@@ -654,61 +757,38 @@ TodoTxtDesklet.prototype = {
             "Dec"
         ];
 
-
         return months[month] || "";
     },
 
 
     _getToday: function() {
-
         let now = new Date();
-
 
         return (
             now.getFullYear() +
             "-" +
-            String(
-                now.getMonth() + 1
-            ).padStart(2, "0") +
+            String(now.getMonth() + 1).padStart(2, "0") +
             "-" +
-            String(
-                now.getDate()
-            ).padStart(2, "0")
+            String(now.getDate()).padStart(2, "0")
         );
     },
 
 
     _isValidDate: function(date) {
-
-        if (
-            !/^\d{4}-\d{2}-\d{2}$/.test(
-                date
-            )
-        )
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(date))
             return false;
 
+        let parts = date.split("-");
 
-        let parts =
-            date.split("-");
+        let year = parseInt(parts[0], 10);
+        let month = parseInt(parts[1], 10) - 1;
+        let day = parseInt(parts[2], 10);
 
-
-        let year =
-            parseInt(parts[0], 10);
-
-        let month =
-            parseInt(parts[1], 10) - 1;
-
-        let day =
-            parseInt(parts[2], 10);
-
-
-        let test =
-            new Date(
-                year,
-                month,
-                day
-            );
-
+        let test = new Date(
+            year,
+            month,
+            day
+        );
 
         return (
             test.getFullYear() === year &&
@@ -719,25 +799,20 @@ TodoTxtDesklet.prototype = {
 
 
     _daysBetween: function(date1, date2) {
-
         if (
             !this._isValidDate(date1) ||
             !this._isValidDate(date2)
-        )
+        ) {
             return null;
+        }
 
+        let a = new Date(
+            date1 + "T00:00:00"
+        );
 
-        let a =
-            new Date(
-                date1 + "T00:00:00"
-            );
-
-
-        let b =
-            new Date(
-                date2 + "T00:00:00"
-            );
-
+        let b = new Date(
+            date2 + "T00:00:00"
+        );
 
         return Math.round(
             (b - a) / 86400000
@@ -745,462 +820,75 @@ TodoTxtDesklet.prototype = {
     },
 
 
-    _addTask: function(task) {
-
-        let row =
-            new St.BoxLayout({
-                vertical: true,
-                style_class:
-                    "todotxt-task"
-            });
-
-
-        /*
-         * Main task line
-         */
-
-        let taskLine =
-            new St.BoxLayout({
-                vertical: false,
-                style_class:
-                    "todotxt-task-line"
-            });
-
-
-        let marker =
-            task.completed
-                ? "✓"
-                : "○";
-
-
-        let markerLabel =
-            new St.Label({
-                text: marker,
-                style_class:
-                    task.completed
-                        ? "todotxt-marker-completed"
-                        : "todotxt-marker"
-            });
-
-
-        markerLabel.set_width(24);
-
-
-        taskLine.add_child(
-            markerLabel
-        );
-
-
-        /*
-         * Priority
-         */
-
-        if (
-            this.showPriority &&
-            task.priority
-        ) {
-
-            let priorityLabel =
-                new St.Label({
-                    text:
-                        "(" +
-                        task.priority +
-                        ")",
-                    style_class:
-                        "todotxt-marker"
-                });
-
-
-            taskLine.add_child(
-                priorityLabel
-            );
-        }
-
-
-        /*
-         * Task text
-         */
-
-        let textLabel =
-            new St.Label({
-                text: task.text,
-                style_class:
-                    task.completed
-                        ? "todotxt-task-completed"
-                        : "todotxt-task-text"
-            });
-
-
-        textLabel.clutter_text.line_wrap =
-            true;
-
-
-        taskLine.add_child(
-            textLabel,
-            { expand: true }
-        );
-
-
-        row.add_child(
-            taskLine
-        );
-
-
-        /*
-         * Metadata
-         */
-
-        let hasDate =
-            (
-                this.showCreationDate &&
-                task.creationDate
-            ) ||
-            (
-                this.showDueDate &&
-                task.dueDate
-            );
-
-
-        let hasTags =
-            (
-                this.showProjects &&
-                task.projects.length > 0
-            ) ||
-            (
-                this.showContexts &&
-                task.contexts.length > 0
-            ) ||
-            (
-                this.showOtherTags &&
-                task.otherTags.length > 0
-            );
-
-
-        if (
-            this.showTagsBelow &&
-            (hasDate || hasTags)
-        ) {
-
-            let metadata =
-                new St.BoxLayout({
-                    vertical: false,
-                    style_class:
-                        "todotxt-metadata"
-                });
-
-
-            if (this.alignTagsRight) {
-
-                let spacer =
-                    new St.Widget({
-                        x_expand: true
-                    });
-
-                metadata.add_child(
-                    spacer
-                );
-            }
-
-
-            /*
-             * Creation date
-             */
-
-            if (
-                this.showCreationDate &&
-                task.creationDate
-            ) {
-
-                let label =
-                    new St.Label({
-                        text:
-                            "Created " +
-                            this._formatDate(
-                                task.creationDate
-                            ),
-                        style_class:
-                            "todotxt-date"
-                    });
-
-                metadata.add_child(
-                    label
-                );
-            }
-
-
-            /*
-             * Due date
-             */
-
-            if (
-                this.showDueDate &&
-                task.dueDate
-            ) {
-
-                let days =
-                    this._daysBetween(
-                        this._getToday(),
-                        task.dueDate
-                    );
-
-
-                let style =
-                    "todotxt-due";
-
-
-                if (days !== null) {
-
-                    if (days < 0) {
-
-                        style =
-                            "todotxt-due-overdue";
-
-                    } else if (days <= 2) {
-
-                        style =
-                            "todotxt-due-soon";
-                    }
-                }
-
-
-                let dueLabel =
-                    new St.Label({
-                        text:
-                            "Due " +
-                            this._formatDate(
-                                task.dueDate
-                            ),
-                        style_class:
-                            style
-                    });
-
-
-                if (!this.underlineDue) {
-
-                    dueLabel.set_style(
-                        "text-decoration: none;"
-                    );
-                }
-
-
-                metadata.add_child(
-                    dueLabel
-                );
-            }
-
-
-            /*
-             * Projects
-             */
-
-            if (
-                this.showProjects &&
-                task.projects.length > 0
-            ) {
-
-                for (
-                    let i = 0;
-                    i < task.projects.length;
-                    i++
-                ) {
-
-                    let label =
-                        this._createTag(
-                            task.projects[i],
-                            "todotxt-project"
-                        );
-
-                    metadata.add_child(
-                        label
-                    );
-                }
-            }
-
-
-            /*
-             * Contexts
-             */
-
-            if (
-                this.showContexts &&
-                task.contexts.length > 0
-            ) {
-
-                for (
-                    let i = 0;
-                    i < task.contexts.length;
-                    i++
-                ) {
-
-                    let label =
-                        this._createTag(
-                            task.contexts[i],
-                            "todotxt-context"
-                        );
-
-                    metadata.add_child(
-                        label
-                    );
-                }
-            }
-
-
-            /*
-             * Other tags
-             */
-
-            if (
-                this.showOtherTags &&
-                task.otherTags.length > 0
-            ) {
-
-                for (
-                    let i = 0;
-                    i < task.otherTags.length;
-                    i++
-                ) {
-
-                    let label =
-                        this._createTag(
-                            task.otherTags[i],
-                            "todotxt-other-tag"
-                        );
-
-                    metadata.add_child(
-                        label
-                    );
-                }
-            }
-
-
-            row.add_child(
-                metadata
-            );
-        }
-
-
-        /*
-         * If tags aren't being shown below,
-         * display nothing extra. The actual
-         * task text remains clean.
-         */
-
-        this._taskBox.add_child(
-            row
-        );
-    },
-
-
-    _createTag: function(text, styleClass) {
-
-        let label =
-            new St.Label({
-                text: text,
-                style_class:
-                    "todotxt-tag " +
-                    styleClass
-            });
-
-
-        if (!this.roundedTags) {
-
-            label.set_style(
-                "border-radius: 0px;"
-            );
-        }
-
-
-        return label;
-    },
-
+    /*
+     * ------------------------------------------------------------------------
+     * Error handling
+     * ------------------------------------------------------------------------
+     */
 
     _showError: function(message) {
-
         this._taskBox.destroy_all_children();
 
+        let errorLabel = new St.Label({
+            text: message,
+            style_class: "todotxt-error"
+        });
 
-        let errorLabel =
-            new St.Label({
-                text: message,
-                style_class:
-                    "todotxt-error"
-            });
+        errorLabel.clutter_text.line_wrap = true;
 
+        this._taskBox.add_child(errorLabel);
 
-        errorLabel.clutter_text.line_wrap =
-            true;
-
-
-        this._taskBox.add_child(
-            errorLabel
-        );
-
-
-        this._title.set_text(
-            "Todo.txt"
-        );
+        this._title.set_text("Todo.txt");
     },
 
 
+    /*
+     * ------------------------------------------------------------------------
+     * Desklet interaction
+     * ------------------------------------------------------------------------
+     */
+
     _onClicked: function(actor, event) {
+        let button = event.get_button();
 
-        let button =
-            event.get_button();
-
-
-        if (
-            button !==
-            Clutter.BUTTON_PRIMARY
-        )
+        if (button !== Clutter.BUTTON_PRIMARY)
             return Clutter.EVENT_PROPAGATE;
 
-
-        let path =
-            this._expandPath(
-                this.todoFile
-            );
-
+        let path = this._expandPath(
+            this.todoFile
+        );
 
         if (!path)
             return Clutter.EVENT_STOP;
 
-
         try {
-
             Util.spawn([
                 "xdg-open",
                 path
             ]);
-
         } catch (e) {
-
             global.logError(
-                "Unable to open todo.txt: " +
-                e
+                "Unable to open todo.txt: " + e
             );
         }
-
 
         return Clutter.EVENT_STOP;
     },
 
 
+    /*
+     * ------------------------------------------------------------------------
+     * Cleanup
+     * ------------------------------------------------------------------------
+     */
+
     on_desklet_removed: function() {
-
-        if (this._refreshTimer) {
-
-            Mainloop.source_remove(
-                this._refreshTimer
-            );
-
-            this._refreshTimer = null;
-        }
+        this._stopRefreshTimer();
     }
 };
 
 
 function main(metadata, desklet_id) {
-
     return new TodoTxtDesklet(
         metadata,
         desklet_id

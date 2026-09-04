@@ -1,7 +1,7 @@
-x Install todo.txt Desklet +begin @cinnamon
-Right-click to open the desklet settings +todo @desklet
-Customise the style to suit your desktop +todo @desklet
-Learn about todo.txt at todotxt.org http://todotxt.org +todo @web
-Create your own todo.txt file +personalise @home
-Set it as default +personalise @home
-Be more productive +motivation +life
+x 2026-09-01 Install todo.txt Desklet +begin @cinnamon
+2026-09-01 Right-click to open the desklet settings +todo @desklet
+2026-09-01 Customise the style to suit your desktop +todo @desklet
+2026-09-01 Learn about todo.txt at http://todotxt.org +todo @web
+2026-09-01 Create your own todo.txt file +personalise @home
+2026-09-01 Set it as default +personalise @home
+2026-09-01 Be more productive +motivation +life
