@@ -47,7 +47,7 @@ Left-clicking on the desklet should load the todo.txt file in your default text 
 - [x] Add some style options
 - [x] Add ability to choose what information is displayed
 - [ ] Add ability to mark tasks as done from the desklet.
-- [ ] Add the ability to open links from tasks in default browser
+- [x] Add the ability to open links from tasks in default browser
 - [ ] Fix it so it works on multiple version of cinnamon other than the one I use.
 - [ ] Other stuff that comes to mind over time
 - [ ] Keep it light

@@ -25,7 +25,7 @@ TodoTxtDesklet.prototype = {
      * ------------------------------------------------------------------------
      */
 
-    _init: function(metadata, desklet_id) {
+    _init: function (metadata, desklet_id) {
         Desklet.Desklet.prototype._init.call(
             this,
             metadata,
@@ -59,7 +59,7 @@ TodoTxtDesklet.prototype = {
     },
 
 
-    _bindSettings: function() {
+    _bindSettings: function () {
         let settings = [
             "todo-file",
             "show-completed",
@@ -70,6 +70,7 @@ TodoTxtDesklet.prototype = {
             "show-projects",
             "show-contexts",
             "show-other-tags",
+            "clickable-links",
             "show-tags-below",
             "align-tags-right",
             "rounded-tags",
@@ -89,10 +90,10 @@ TodoTxtDesklet.prototype = {
     },
 
 
-    _settingName: function(name) {
+    _settingName: function (name) {
         return name.replace(
             /-([a-z])/g,
-            function(match, letter) {
+            function (match, letter) {
                 return letter.toUpperCase();
             }
         );
@@ -105,7 +106,7 @@ TodoTxtDesklet.prototype = {
      * ------------------------------------------------------------------------
      */
 
-    _buildUI: function() {
+    _buildUI: function () {
         this._mainBox = new St.BoxLayout({
             vertical: true,
             style_class: "todotxt-container"
@@ -131,7 +132,7 @@ TodoTxtDesklet.prototype = {
     },
 
 
-    _settingsChanged: function() {
+    _settingsChanged: function () {
         let newInterval = this._getRefreshInterval();
 
         this._applyAppearance();
@@ -143,7 +144,7 @@ TodoTxtDesklet.prototype = {
     },
 
 
-    _applyAppearance: function() {
+    _applyAppearance: function () {
         if (!this._taskBox)
             return;
 
@@ -168,7 +169,7 @@ TodoTxtDesklet.prototype = {
      * ------------------------------------------------------------------------
      */
 
-    _getRefreshInterval: function() {
+    _getRefreshInterval: function () {
         let interval = parseInt(this.refreshInterval, 10);
 
         if (isNaN(interval) || interval < 1)
@@ -178,7 +179,7 @@ TodoTxtDesklet.prototype = {
     },
 
 
-    _startRefreshTimer: function() {
+    _startRefreshTimer: function () {
         this._stopRefreshTimer();
 
         this._currentRefreshInterval =
@@ -194,7 +195,7 @@ TodoTxtDesklet.prototype = {
     },
 
 
-    _stopRefreshTimer: function() {
+    _stopRefreshTimer: function () {
         if (this._refreshTimer) {
             Mainloop.source_remove(this._refreshTimer);
             this._refreshTimer = null;
@@ -210,7 +211,7 @@ TodoTxtDesklet.prototype = {
      * ------------------------------------------------------------------------
      */
 
-    _expandPath: function(path) {
+    _expandPath: function (path) {
         if (!path)
             return null;
 
@@ -246,7 +247,7 @@ TodoTxtDesklet.prototype = {
     },
 
 
-    _readTodoFile: function() {
+    _readTodoFile: function () {
         let path = this._expandPath(this.todoFile);
 
         if (!path) {
@@ -296,7 +297,7 @@ TodoTxtDesklet.prototype = {
      * ------------------------------------------------------------------------
      */
 
-    _displayTasks: function(text) {
+    _displayTasks: function (text) {
         this._taskBox.destroy_all_children();
 
         let lines = text.split(/\r?\n/);
@@ -342,7 +343,7 @@ TodoTxtDesklet.prototype = {
     },
 
 
-    _addTask: function(task) {
+    _addTask: function (task) {
         let row = new St.BoxLayout({
             vertical: true,
             style_class: "todotxt-task"
@@ -360,8 +361,7 @@ TodoTxtDesklet.prototype = {
         this._taskBox.add_child(row);
     },
 
-
-    _createTaskLine: function(task) {
+    _createTaskLine: function (task) {
         let taskLine = new St.BoxLayout({
             vertical: false,
             style_class: "todotxt-task-line"
@@ -389,25 +389,156 @@ TodoTxtDesklet.prototype = {
             );
         }
 
-        let textLabel = new St.Label({
-            text: task.text,
-            style_class: task.completed
-                ? "todotxt-task-completed"
-                : "todotxt-task-text"
-        });
-
-        textLabel.clutter_text.line_wrap = true;
+        let taskText = this._createTaskText(task);
 
         taskLine.add_child(
-            textLabel,
+            taskText,
             { expand: true }
         );
 
         return taskLine;
     },
 
+    _createTaskText: function (task) {
+        let textBox = new St.BoxLayout({
+            vertical: false,
+            x_expand: true,
+            style_class: "todotxt-task-text-box"
+        });
 
-    _createMetadata: function(task) {
+        let links = this.clickableLinks
+            ? this._findUrls(task.text)
+            : [];
+
+        if (links.length === 0) {
+            this._addTaskTextLabel(textBox, task.text, task.completed);
+            return textBox;
+        }
+
+        let offset = 0;
+
+        for (let i = 0; i < links.length; i++) {
+            let link = links[i];
+
+            this._addTaskTextLabel(
+                textBox,
+                task.text.substring(offset, link.start),
+                task.completed
+            );
+
+            this._addUrlButton(textBox, link.url, task.completed);
+
+            offset = link.end;
+        }
+
+        this._addTaskTextLabel(
+            textBox,
+            task.text.substring(offset),
+            task.completed
+        );
+
+        return textBox;
+    },
+
+
+    _addTaskTextLabel: function (container, text, completed) {
+        if (!text)
+            return;
+
+        let label = new St.Label({
+            text: text,
+            style_class: completed
+                ? "todotxt-task-completed"
+                : "todotxt-task-text"
+        });
+
+        label.clutter_text.line_wrap = true;
+        container.add_child(label);
+    },
+
+
+    _addUrlButton: function (container, url, completed) {
+        let button = new St.Button({
+            label: url,
+            reactive: true,
+            track_hover: true,
+            can_focus: false,
+            style_class: completed
+                ? "todotxt-link-completed"
+                : "todotxt-link"
+        });
+
+        button.connect(
+            "button-release-event",
+            (actor, event) => {
+                if (event.get_button() !== Clutter.BUTTON_PRIMARY)
+                    return Clutter.EVENT_PROPAGATE;
+
+                this._openUrl(url);
+                return Clutter.EVENT_STOP;
+            }
+        );
+
+        container.add_child(button);
+    },
+
+    _findUrls: function (text) {
+        let links = [];
+
+        /*
+         * Match HTTP and HTTPS URLs.
+         *
+         * The final punctuation characters are excluded so that:
+         *
+         *     See https://example.com.
+         *
+         * does not make the period part of the URL.
+         */
+        let regex = /https?:\/\/[^\s<>"']+/gi;
+        let match;
+
+        while ((match = regex.exec(text)) !== null) {
+            let url = match[0];
+
+            while (
+                /[.,!?;:)]+$/.test(url)
+            ) {
+                url = url.substring(
+                    0,
+                    url.length - 1
+                );
+            }
+
+            if (!url)
+                continue;
+
+            links.push({
+                url: url,
+                start: match.index,
+                end: match.index + url.length
+            });
+        }
+
+        return links;
+    },
+
+    _openUrl: function (url) {
+        try {
+            Util.spawn([
+                "xdg-open",
+                url
+            ]);
+        } catch (e) {
+            global.logError(
+                "Unable to open URL: " +
+                url +
+                ": " +
+                e
+            );
+        }
+    },
+
+    _createMetadata: function (task) {
         let hasDate =
             (
                 this.showCreationDate &&
@@ -455,7 +586,7 @@ TodoTxtDesklet.prototype = {
     },
 
 
-    _addDateMetadata: function(metadata, task) {
+    _addDateMetadata: function (metadata, task) {
         if (
             this.showCreationDate &&
             task.creationDate
@@ -507,7 +638,7 @@ TodoTxtDesklet.prototype = {
     },
 
 
-    _addTagMetadata: function(metadata, task) {
+    _addTagMetadata: function (metadata, task) {
         if (
             this.showProjects &&
             task.projects.length > 0
@@ -543,7 +674,7 @@ TodoTxtDesklet.prototype = {
     },
 
 
-    _addTags: function(container, tags, styleClass) {
+    _addTags: function (container, tags, styleClass) {
         for (let i = 0; i < tags.length; i++) {
             container.add_child(
                 this._createTag(
@@ -555,7 +686,7 @@ TodoTxtDesklet.prototype = {
     },
 
 
-    _createTag: function(text, styleClass) {
+    _createTag: function (text, styleClass) {
         let label = new St.Label({
             text: text,
             style_class:
@@ -578,7 +709,7 @@ TodoTxtDesklet.prototype = {
      * ------------------------------------------------------------------------
      */
 
-    _parseTask: function(line) {
+    _parseTask: function (line) {
         let task = {
             completed: false,
             completionDate: null,
@@ -719,7 +850,7 @@ TodoTxtDesklet.prototype = {
      * ------------------------------------------------------------------------
      */
 
-    _formatDate: function(date) {
+    _formatDate: function (date) {
         if (!date)
             return "";
 
@@ -740,7 +871,7 @@ TodoTxtDesklet.prototype = {
     },
 
 
-    _monthName: function(month) {
+    _monthName: function (month) {
         let months = [
             "",
             "Jan",
@@ -761,7 +892,7 @@ TodoTxtDesklet.prototype = {
     },
 
 
-    _getToday: function() {
+    _getToday: function () {
         let now = new Date();
 
         return (
@@ -774,7 +905,7 @@ TodoTxtDesklet.prototype = {
     },
 
 
-    _isValidDate: function(date) {
+    _isValidDate: function (date) {
         if (!/^\d{4}-\d{2}-\d{2}$/.test(date))
             return false;
 
@@ -798,7 +929,7 @@ TodoTxtDesklet.prototype = {
     },
 
 
-    _daysBetween: function(date1, date2) {
+    _daysBetween: function (date1, date2) {
         if (
             !this._isValidDate(date1) ||
             !this._isValidDate(date2)
@@ -826,7 +957,7 @@ TodoTxtDesklet.prototype = {
      * ------------------------------------------------------------------------
      */
 
-    _showError: function(message) {
+    _showError: function (message) {
         this._taskBox.destroy_all_children();
 
         let errorLabel = new St.Label({
@@ -848,7 +979,7 @@ TodoTxtDesklet.prototype = {
      * ------------------------------------------------------------------------
      */
 
-    _onClicked: function(actor, event) {
+    _onClicked: function (actor, event) {
         let button = event.get_button();
 
         if (button !== Clutter.BUTTON_PRIMARY)
@@ -882,7 +1013,7 @@ TodoTxtDesklet.prototype = {
      * ------------------------------------------------------------------------
      */
 
-    on_desklet_removed: function() {
+    on_desklet_removed: function () {
         this._stopRefreshTimer();
     }
 };

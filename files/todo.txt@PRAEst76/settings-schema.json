@@ -3,7 +3,6 @@
         "type": "header",
         "description": "Display"
     },
-
     "todo-file": {
         "type": "filechooser",
         "default": "~/.local/share/cinnamon/desklets/todo.txt@PRAEst76/example-todo.txt",
@@ -11,96 +10,88 @@
         "description": "Todo.txt file",
         "tooltip": "Select the todo.txt file to display"
     },
-
     "show-completed": {
         "type": "switch",
         "default": true,
         "description": "Show completed tasks",
         "tooltip": "Display completed tasks"
     },
-
     "show-task-count": {
         "type": "switch",
         "default": true,
         "description": "Show task count",
         "tooltip": "Show the number of displayed tasks"
     },
-
     "show-priority": {
         "type": "switch",
         "default": true,
         "description": "Show priorities",
         "tooltip": "Display task priorities"
     },
-
     "show-creation-date": {
         "type": "switch",
         "default": false,
         "description": "Show creation dates",
         "tooltip": "Display creation dates"
     },
-
     "show-due-date": {
         "type": "switch",
         "default": true,
         "description": "Show due dates",
         "tooltip": "Display due dates"
     },
-
     "show-projects": {
         "type": "switch",
         "default": true,
         "description": "Show projects",
         "tooltip": "Display +project tags"
     },
-
     "show-contexts": {
         "type": "switch",
         "default": true,
         "description": "Show contexts",
         "tooltip": "Display @context tags"
     },
-
     "show-other-tags": {
         "type": "switch",
         "default": true,
         "description": "Show other tags",
         "tooltip": "Display other key:value tags"
     },
-
+    "clickable-links": {
+        "type": "switch",
+        "default": true,
+        "description": "Make URLs clickable",
+        "tooltip": "Open HTTP and HTTPS links in your default browser"
+    },
     "appearance-header": {
         "type": "header",
         "description": "Appearance"
     },
-
     "show-tags-below": {
         "type": "switch",
         "default": true,
         "description": "Show tags below task",
         "tooltip": "Display projects and contexts on a separate line"
     },
-
     "align-tags-right": {
         "type": "switch",
         "default": true,
         "description": "Align tags to the right",
         "tooltip": "Align projects and contexts to the right of the task"
     },
-
     "rounded-tags": {
         "type": "switch",
         "default": true,
         "description": "Rounded tag backgrounds",
         "tooltip": "Display projects and contexts as rounded labels"
     },
-
     "underline-due": {
         "type": "switch",
         "default": true,
         "description": "Underline due dates",
         "tooltip": "Underline displayed due dates"
     },
-
     "font-size": {
         "type": "spinbutton",
         "default": 12,
@@ -110,7 +101,6 @@
         "units": "px",
         "description": "Font size"
     },
-
     "task-spacing": {
         "type": "spinbutton",
         "default": 6,
@@ -120,7 +110,6 @@
         "units": "px",
         "description": "Task spacing"
     },
-
     "refresh-interval": {
         "type": "spinbutton",
         "default": 10,

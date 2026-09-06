@@ -107,3 +107,24 @@
     font-size: 11px;
     opacity: 0.8;
 }
+
+.todotxt-link {
+    color: #3584e4;
+    text-decoration: underline;
+    padding: 0;
+    background: none;
+    border: none;
+}
+
+.todotxt-link:hover {
+    color: #62a0ea;
+}
+
+.todotxt-link-completed {
+    color: #3584e4;
+    text-decoration: underline;
+    opacity: 0.55;
+    padding: 0;
+    background: none;
+    border: none;
+}
